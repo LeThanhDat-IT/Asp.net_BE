@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace GundamStoreAPI.Models;
 
@@ -23,7 +24,8 @@ public partial class User
 
     public string? Address { get; set; }
 
-    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+    [JsonIgnore] // Thêm dòng này để Swagger không hiện nó ra nữa
+    public virtual ICollection<Cart>? Carts { get; set; }
 
     public virtual ICollection<Follow> FollowFollowers { get; set; } = new List<Follow>();
 
