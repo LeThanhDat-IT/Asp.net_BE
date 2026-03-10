@@ -9,7 +9,7 @@ using GundamStoreAPI.Models;
 
 namespace Tên_Project_Của_Bạn.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
