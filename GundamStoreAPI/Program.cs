@@ -57,11 +57,9 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Luôn bật Swagger bất kể môi trường nào để bạn có thể test trên Azure
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseCors("AllowTeamFE");
 
 app.UseAuthentication();
