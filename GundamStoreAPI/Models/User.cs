@@ -24,20 +24,28 @@ public partial class User
 
     public string? Address { get; set; }
 
-    [JsonIgnore] // Thêm dòng này để Swagger không hiện nó ra nữa
+    // Chặn đứng các quan hệ để Swagger không bị rối và tránh lỗi 400
+    [JsonIgnore]
     public virtual ICollection<Cart>? Carts { get; set; }
 
+    [JsonIgnore]
     public virtual ICollection<Follow> FollowFollowers { get; set; } = new List<Follow>();
 
+    [JsonIgnore]
     public virtual ICollection<Follow> FollowFollowings { get; set; } = new List<Follow>();
 
+    [JsonIgnore]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
+    [JsonIgnore]
     public virtual ICollection<PostComment> PostComments { get; set; } = new List<PostComment>();
 
+    [JsonIgnore]
     public virtual ICollection<PostLike> PostLikes { get; set; } = new List<PostLike>();
 
+    [JsonIgnore]
     public virtual ICollection<PostShare> PostShares { get; set; } = new List<PostShare>();
 
+    [JsonIgnore]
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 }

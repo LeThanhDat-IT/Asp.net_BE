@@ -4,7 +4,7 @@ using GundamStoreAPI.Models;
 
 namespace GundamStoreAPI.Controllers
 {
-    [Route("api/products")]
+    [Route("/products")]
     [ApiController]
     public class ProductsController : ControllerBase
     {

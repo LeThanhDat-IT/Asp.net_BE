@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GundamStoreAPI.Controllers
 {
-    [Route("api/carts")]
+    [Route("/carts")]
     [ApiController]
     [Authorize]
     public class CartsController : ControllerBase

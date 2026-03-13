@@ -5,7 +5,7 @@ using GundamStoreAPI.Models;
 
 namespace GundamStoreAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/users")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -48,11 +48,30 @@ namespace GundamStoreAPI.Controllers
         // --- UPDATE (U) ---
         // PUT: api/users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, User updatedData)
         {
-            if (id != user.Id) return BadRequest();
+            // 1. Kiểm tra ID có khớp không (Tránh gửi ID 5 nhưng sửa ID 10)
+            if (id != updatedData.Id)
+            {
+                return BadRequest(new { message = "ID không khớp!" });
+            }
 
-            _context.Entry(user).State = EntityState.Modified;
+            // 2. Tìm User trong DB
+            var userInDb = await _context.Users.FindAsync(id);
+            if (userInDb == null)
+            {
+                return NotFound(new { message = "Không tìm thấy User!" });
+            }
+
+            // 3. Cập nhật dữ liệu (Chỉ cập nhật những gì cần thiết)
+            // Lưu ý: Không nên cho phép sửa Password ở đây, Password nên có API riêng
+            userInDb.Username = updatedData.Username;
+            userInDb.Password = updatedData.Password;
+            userInDb.Email = updatedData.Email;
+            userInDb.Phone = updatedData.Phone;
+            userInDb.Address = updatedData.Address;
+            userInDb.Avatar = updatedData.Avatar;
+            userInDb.Role = updatedData.Role;
 
             try
             {
@@ -64,7 +83,7 @@ namespace GundamStoreAPI.Controllers
                 else throw;
             }
 
-            return NoContent();
+            return Ok(userInDb); // Trả về User đã sửa để FE cập nhật giao diện
         }
 
         // --- DELETE (D) ---
