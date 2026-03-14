@@ -3,21 +3,29 @@ using GundamStoreAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Lấy chuỗi kết nối từ appsettings.json
+// 1. Lấy chuỗi kết nối từ appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Đăng ký GundamStoreContext
+// 2. Đăng ký GundamStoreContext (Sửa để tự động nhận diện phiên bản MySQL)
 builder.Services.AddDbContext<GundamStoreContext>(options =>
-    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21))));
+{
+    if (!string.IsNullOrEmpty(connectionString))
+    {
+        // Khai báo cứng phiên bản MySQL 8.0.21 (hoặc phiên bản Clever Cloud đang dùng)
+        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)));
+    }
+});
 
-// Add services to the container.
+// 3. Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 4. Cấu hình CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowTeamFE", policy =>
@@ -28,11 +36,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ĐỌC THÔNG TIN TỪ APPSETTINGS
+// 5. Cấu hình JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+var keyString = jwtSettings["Key"] ?? "MotChuoiMacDinhSieuDaiDeKhongBiLoiHeThong2026!!!";
+var key = Encoding.ASCII.GetBytes(keyString);
 
-// ĐĂNG KÝ XÁC THỰC JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,21 +58,28 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidateAudience = true,
         ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero // Loại bỏ thời gian trễ mặc định của token
     };
 });
 
 var app = builder.Build();
 
-// CONFIGURE SWAGGER AT ROOT
+// 6. Cấu hình hỗ trợ Proxy (Azure/Render thường dùng Reverse Proxy)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// 7. Cấu hình Swagger
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "GundamStoreAPI v1");
-    // Sửa dòng này để Swagger chạy ngay tại địa chỉ gốc (/)
-    options.RoutePrefix = string.Empty;
+    options.RoutePrefix = string.Empty; // Swagger tại root
 });
 
+// 8. Middleware Pipeline
 app.UseCors("AllowTeamFE");
 
 app.UseAuthentication();
