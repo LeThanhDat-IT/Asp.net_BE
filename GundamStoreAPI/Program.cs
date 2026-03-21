@@ -10,22 +10,23 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Lấy chuỗi kết nối từ appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 2. Đăng ký GundamStoreContext (Sửa để tự động nhận diện phiên bản MySQL)
+// 2. ĐĂNG KÝ DATABASE (ĐÂY LÀ ĐOẠN BẠN BỊ THIẾU KHIẾN CODE BÁO LỖI)
 builder.Services.AddDbContext<GundamStoreContext>(options =>
-{
-    if (!string.IsNullOrEmpty(connectionString))
-    {
-        // Khai báo cứng phiên bản MySQL 8.0.21 (hoặc phiên bản Clever Cloud đang dùng)
-        options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21)));
-    }
-});
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 21))));
 
-// 3. Add services to the container
-builder.Services.AddControllers();
+// 3. Đăng ký Controllers và Fix lỗi vòng lặp JSON
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
+
+// 4. Add services to the container
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 4. Cấu hình CORS
+// 5. Cấu hình CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowTeamFE", policy =>
@@ -36,7 +37,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 5. Cấu hình JWT
+// 6. Cấu hình JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var keyString = jwtSettings["Key"] ?? "MotChuoiMacDinhSieuDaiDeKhongBiLoiHeThong2026!!!";
 var key = Encoding.ASCII.GetBytes(keyString);
@@ -65,13 +66,13 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// 6. Cấu hình hỗ trợ Proxy (Azure/Render thường dùng Reverse Proxy)
+// 7. Cấu hình hỗ trợ Proxy (Azure/Render thường dùng Reverse Proxy)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 
-// 7. Cấu hình Swagger
+// 8. Cấu hình Swagger
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
@@ -79,7 +80,7 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = string.Empty; // Swagger tại root
 });
 
-// 8. Middleware Pipeline
+// 9. Middleware Pipeline
 app.UseCors("AllowTeamFE");
 
 app.UseAuthentication();
